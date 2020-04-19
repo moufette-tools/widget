@@ -22,7 +22,6 @@ const Button = styled.button`
 `;
 
 const Feedback = () => {
-   const [canSend, setCanSend] = useState(false)
    const [loading, setLoading] = useState(false)
    const [isOpen, setIsOpen] = useState(false)
    const [message, setMessage] = useState('')
@@ -31,9 +30,7 @@ const Feedback = () => {
    const [feedback] = useMutation(FEEDBACK_MUTATION);
 
    const sendFeedback = () => {
-
       setLoading(true)
-
       feedback({
          variables: {
             message
@@ -54,7 +51,7 @@ const Feedback = () => {
             content={(
                <div style={{ padding: 10 }}>
                   <textarea value={message} onChange={e => setMessage(e.target.value)} id="w3mission" rows={5} style={{ width: '100%' }} />
-                  <Button onClick={sendFeedback}>
+                  <Button disabled={!message} onClick={sendFeedback}>
                      Send
                   </Button>
                </div>

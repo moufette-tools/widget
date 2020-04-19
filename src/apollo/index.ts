@@ -4,6 +4,8 @@ import { HttpLink } from 'apollo-link-http';
 import { onError } from 'apollo-link-error';
 import { ApolloLink } from 'apollo-link';
 
+import moufetteConfig from '../config'
+
 
 const errorLink = onError(
    ({ graphQLErrors, networkError, operation, response }) => {
@@ -43,8 +45,7 @@ const client = new ApolloClient({
    link: ApolloLink.from([
       errorLink,
       new HttpLink({
-         // TODO should come from client
-         uri: 'http://localhost:5000/graphql',
+         uri: moufetteConfig.api_host,
          credentials: 'same-origin'
       }),
    ]),
