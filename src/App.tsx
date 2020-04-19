@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
-import { Popover, Button, Form, Input, message } from 'antd'
 import styled from 'styled-components'
-import { MessageOutlined } from '@ant-design/icons';
 import { useMutation } from '@apollo/client';
 
+import Popover from './components/Popover'
 
 import { FEEDBACK_MUTATION } from './apollo/mutations';
 
@@ -14,56 +13,56 @@ const Floating = styled.div`
   bottom: 10px;
 `;
 
+const Input = styled.input`
+
+`;
+
+const Button = styled.button`
+
+`;
+
 const Feedback = () => {
-   const [form] = Form.useForm();
    const [canSend, setCanSend] = useState(false)
    const [loading, setLoading] = useState(false)
+   const [isOpen, setIsOpen] = useState(false)
+   const [message, setMessage] = useState('')
 
 
    const [feedback] = useMutation(FEEDBACK_MUTATION);
 
    const sendFeedback = () => {
-      form.validateFields().then(values => {
-         setLoading(true)
-         form.resetFields()
-         feedback({
-            variables: {
-               message: values.message
-            },
-         }).then(({ data }) => {
-            message.success('Thank you for your feedback. You Rock!', 5);
-            setLoading(false)
-         }).catch(e => {
-            setLoading(false)
-            console.log(e)
-         })
-      }).catch(console.log)
+
+      setLoading(true)
+
+      feedback({
+         variables: {
+            message
+         },
+      }).then(({ data }) => {
+         // message.success('Thank you for your feedback. You Rock!', 5);
+         setLoading(false)
+      }).catch(e => {
+         setLoading(false)
+         console.log(e)
+      })
    }
 
    return (
       <Floating>
          <Popover
-            placement="topRight"
-            title="Feedback"
-            trigger="click"
-            content={
-               <Form form={form} layout="vertical" hideRequiredMark>
-                  <Form.Item name="message">
-                     <Input.TextArea
-                        onChange={e => setCanSend(!!e.target.value)}
-                        rows={6}
-                        placeholder="What do you like, what you don't. Is there anything missing you think should be added?"
-                     />
-                  </Form.Item>
-                  <Form.Item>
-                     <Button disabled={!canSend} loading={loading} htmlType="submit" onClick={sendFeedback} type="primary">
-                        Send
-                     </Button>
-                  </Form.Item>
-               </Form>
-            }
+            isOpen={isOpen}
+            content={(
+               <div style={{ padding: 10 }}>
+                  <textarea value={message} onChange={e => setMessage(e.target.value)} id="w3mission" rows={5} style={{ width: '100%' }} />
+                  <Button onClick={sendFeedback}>
+                     Send
+                  </Button>
+               </div>
+            )}
          >
-            <Button type="primary" shape="circle" icon={<MessageOutlined />} size="large" />
+            <Button onClick={() => setIsOpen(!isOpen)}>
+               Click
+            </Button>
          </Popover>
       </Floating>
    )

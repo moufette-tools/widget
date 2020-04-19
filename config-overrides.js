@@ -1,6 +1,5 @@
 const {
    override,
-   fixBabelImports,
    disableChunk,
 } = require('customize-cra')
 
@@ -33,9 +32,4 @@ const disableHash = () => (config) => {
 module.exports = override(
    disableHash(),
    disableChunk(),
-   fixBabelImports('import', {
-      libraryName: 'antd',
-      libraryDirectory: 'es',
-      style: 'css',
-   }),
 )
