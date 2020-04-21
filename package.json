@@ -1,5 +1,5 @@
 {
-  "name": "widget",
+  "name": "moufette-widget",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
