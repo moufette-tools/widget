@@ -10,7 +10,9 @@ const Content = styled.div`
    bottom: 10px;
    right: 0;
    width: 300px;
-   background-color: gray;
+   border: 1px solid gray;
+   border-radius: 2px;
+   border-color: #d9d9d9;
 `
 
 const Popover = ({ children, content, isOpen }: any) => {
