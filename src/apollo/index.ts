@@ -40,9 +40,18 @@ const errorLink = onError(
    },
 );
 
+const auth = new ApolloLink((operation, forward) => {
+   operation.setContext({
+      headers: {
+         token: moufetteConfig.token
+      }
+   });
+   return forward(operation);
+});
 
 const client = new ApolloClient({
    link: ApolloLink.from([
+      auth,
       errorLink,
       new HttpLink({
          uri: moufetteConfig.api_host,
