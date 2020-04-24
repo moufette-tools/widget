@@ -7,12 +7,12 @@ const Container = styled.div`
 `
 
 const Content = styled.div`
+   border-radius: 10px 10px 0 30px;
    position: absolute;
    bottom: 10px;
    right: 0;
    width: 300px;
    border: 1px solid gray;
-   border-radius: 2px;
    border-color: #d9d9d9;
    background-color: white;
 `
