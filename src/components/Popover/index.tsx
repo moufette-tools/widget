@@ -3,6 +3,7 @@ import styled from 'styled-components'
 
 const Container = styled.div`
    position: relative;
+
 `
 
 const Content = styled.div`
@@ -13,6 +14,7 @@ const Content = styled.div`
    border: 1px solid gray;
    border-radius: 2px;
    border-color: #d9d9d9;
+   background-color: white;
 `
 
 const Popover = ({ children, content, isOpen }: any) => {

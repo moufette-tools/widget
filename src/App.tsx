@@ -1,16 +1,32 @@
 import React, { useState } from 'react'
-import styled from 'styled-components'
+import styled from 'styled-components/macro'
 import { useMutation } from '@apollo/client';
+import html2canvas from 'html2canvas';
+
+import { CSSProp } from 'styled-components';
 
 import Popover from './components/Popover'
 
 import { FEEDBACK_MUTATION } from './apollo/mutations';
+
+declare module 'react' {
+   interface Attributes {
+      css?: CSSProp;
+   }
+}
+
+
+
+const Label = styled.label`
+   margin: 10px 0;
+`
 
 const Floating = styled.div`
   position: fixed;
   right: 10px;
   margin: 10px;
   bottom: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 `;
 
 const Textarea = styled.textarea`
@@ -20,6 +36,7 @@ const Textarea = styled.textarea`
    border-radius: 2px;
    outline: none;
    border-color: #d9d9d9;
+   font-size: 16px;
 `;
 
 const Button = styled.button`
@@ -109,8 +126,11 @@ const SVG = ({
 
 const Feedback = () => {
    const [loading, setLoading] = useState(false)
+   const [submitted, setSubmitted] = useState(false)
    const [isOpen, setIsOpen] = useState(false)
    const [message, setMessage] = useState('')
+   const [image, setImage] = useState(null)
+   const [screenshot, setScreenshot] = useState(true)
 
 
    const [feedback] = useMutation(FEEDBACK_MUTATION);
@@ -119,41 +139,93 @@ const Feedback = () => {
       setLoading(true)
       feedback({
          variables: {
-            message
+            message,
+            image
          },
       }).then(({ data }) => {
          // message.success('Thank you for your feedback. You Rock!', 5);
          setLoading(false)
+         setSubmitted(true)
+         setImage(null)
+         setMessage('')
       }).catch(e => {
          setLoading(false)
          console.log(e)
       })
    }
 
+   const captureScreen = () => {
+      html2canvas(document.querySelector("html") as any).then((canvas: any) => {
+         const image = canvas.toDataURL("image/png");
+         setImage(image)
+      });
+   }
+
+
+   let content = null
+
+   if (loading) {
+      content = (<div style={{ height: 300 }}>loading</div>)
+   } else {
+      if (submitted) {
+         content = <div style={{ height: 300 }}>Thank you!</div>
+      } else {
+         content = (
+            <div style={{ padding: 15, display: 'flex', flexDirection: 'column' }}>
+               {
+                  image &&
+                  <div style={{ border: '1px dashed', textAlign: 'center', backgroundColor: '#00000010' }} >
+                     <img style={{ maxHeight: 150, width: 'auto' }} src={image || ''} />
+                  </div>
+               }
+               <Label>
+                  <input
+                     style={{ marginRight: 5 }}
+                     name="screenshot"
+                     type="checkbox"
+                     checked={screenshot}
+                     onChange={() => {
+                        setScreenshot(!screenshot)
+                        if (!screenshot) {
+                           captureScreen()
+                        } else {
+                           setImage(null)
+                        }
+                     }}
+                  />
+                     Include screenshot
+                  </Label>
+               <Textarea
+                  autoFocus
+                  // autofocusHtml="true"
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  rows={10}
+               />
+               <div css={`display: flex; justify-content: flex-end`}>
+                  <SendButton disabled={!message} onClick={sendFeedback}>
+                     Send
+               </SendButton>
+               </div>
+            </div>
+         )
+      }
+   }
+
    return (
       <Floating>
          <Popover
             isOpen={isOpen}
-            content={(
-               <div style={{ padding: 15, display: 'flex', flexDirection: 'column' }}>
-                  <Textarea
-                     value={message}
-                     onChange={e => setMessage(e.target.value)}
-                     rows={10}
-                  />
-                  <div>
-                     <SendButton disabled={!message} onClick={sendFeedback}>
-                        Send
-                     </SendButton>
-                  </div>
-               </div>
-            )}
+            content={content}
          >
-            <Button onClick={() => setIsOpen(!isOpen)}>
+            <Button onClick={() => {
+               setIsOpen(!isOpen)
+               captureScreen()
+            }}>
                <SVG />
             </Button>
-         </Popover>
-      </Floating>
+         </Popover >
+      </Floating >
    )
 }
 
