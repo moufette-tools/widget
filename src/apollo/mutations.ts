@@ -5,3 +5,16 @@ export const FEEDBACK_MUTATION = gql`
     feedback(message: $message, image: $image)
   }
 `;
+
+
+export const VOTE = gql`
+  mutation Vote($voting: Int!, $feature: String!) {
+    vote(voting: $voting, feature: $feature) {
+      _id
+      title
+      notes
+      score
+      myVote
+    }
+  }
+`;

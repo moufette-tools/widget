@@ -1,20 +1,26 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components/macro'
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import html2canvas from 'html2canvas';
+import { Tabs, useTabState, usePanelState } from "@bumaga/tabs";
 
 import { CSSProp } from 'styled-components';
 
 import Popover from './components/Popover'
+import Svg from './components/Svg'
+import Features from './components/Features'
 
 import { FEEDBACK_MUTATION } from './apollo/mutations';
+import { WIDGET, FEATURES } from './apollo/queries';
+
+import { _ } from './utils'
 
 declare module 'react' {
    interface Attributes {
       css?: CSSProp;
+      flex?: any;
    }
 }
-
 
 
 const Label = styled.label`
@@ -32,14 +38,15 @@ const Floating = styled.div`
 const Textarea = styled.textarea`
    display: block;
    flex: 1;
-   margin-bottom: 15px;
    border-radius: 2px;
    outline: none;
    border-color: #d9d9d9;
    font-size: 16px;
+   padding: 10px;
+   line-height: 24px;
 `;
 
-const Button = styled.button`
+const FAB = styled.button`
    width: 48px;
    height: 48px;
    border-radius: 50%;
@@ -53,7 +60,7 @@ const Button = styled.button`
    }
 `;
 
-const SendButton = styled.button`
+const Button = styled.button`
    line-height: 1.5715;
    position: relative;
    display: inline-block;
@@ -100,37 +107,106 @@ const SendButton = styled.button`
    }
 `
 
-const SVG = ({
-   style = {},
-   fill = "#fff",
-   width = "22px",
-   className = "",
-   viewBox = "0 -2 20 20"
-}) => (
-      <svg
-         width={width}
-         style={style}
-         height={width}
-         viewBox={viewBox}
-         xmlns="http://www.w3.org/2000/svg"
-         className={`svg-icon ${className || ""}`}
-         xmlnsXlink="http://www.w3.org/1999/xlink"
-      >
-         <path fill={fill} stroke="white" stroke-width="0.7" d="M17.657,2.982H2.342c-0.234,0-0.425,0.191-0.425,0.426v10.21c0,0.234,0.191,0.426,0.425,0.426h3.404v2.553c0,0.397,0.48,0.547,0.725,0.302l2.889-2.854h8.298c0.234,0,0.426-0.191,0.426-0.426V3.408C18.083,3.174,17.892,2.982,17.657,2.982M17.232,13.192H9.185c-0.113,0-0.219,0.045-0.3,0.124l-2.289,2.262v-1.96c0-0.233-0.191-0.426-0.425-0.426H2.767V3.833h14.465V13.192z M10,7.237c-0.821,0-1.489,0.668-1.489,1.489c0,0.821,0.668,1.489,1.489,1.489c0.821,0,1.488-0.668,1.488-1.489C11.488,7.905,10.821,7.237,10,7.237 M10,9.364c-0.352,0-0.638-0.288-0.638-0.638c0-0.351,0.287-0.638,0.638-0.638c0.351,0,0.638,0.287,0.638,0.638C10.638,9.077,10.351,9.364,10,9.364 M14.254,7.237c-0.821,0-1.489,0.668-1.489,1.489c0,0.821,0.668,1.489,1.489,1.489s1.489-0.668,1.489-1.489C15.743,7.905,15.075,7.237,14.254,7.237 M14.254,9.364c-0.351,0-0.638-0.288-0.638-0.638c0-0.351,0.287-0.638,0.638-0.638c0.352,0,0.639,0.287,0.639,0.638C14.893,9.077,14.605,9.364,14.254,9.364 M5.746,7.237c-0.821,0-1.489,0.668-1.489,1.489c0,0.821,0.668,1.489,1.489,1.489c0.821,0,1.489-0.668,1.489-1.489C7.234,7.905,6.566,7.237,5.746,7.237 M5.746,9.364c-0.351,0-0.638-0.288-0.638-0.638c0-0.351,0.287-0.638,0.638-0.638c0.351,0,0.638,0.287,0.638,0.638C6.384,9.077,6.096,9.364,5.746,9.364"></path>
-      </svg>
-   );
+const ContentContainer = styled.div`
+   min-height: 300px;
+   max-height: 100vh;
+`
 
+const Header = styled.div`
+   flex-direction: column;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   background-color: #1890ff;
+   color: white;
+   padding: 20px;
+   padding-bottom: 0px;
+`
+
+const Body = styled.div`
+   padding: 20px; padding-bottom: 0; display: flex; flex-direction: column
+`
+
+const Footer = styled.div`
+   padding: 20px;
+   flex-direction: row;
+   display: flex;
+   justify-content: flex-end
+`
+
+const Logo = styled.div`
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   background-color: yellow;
+   height: 40px;
+   width: 40px;
+   margin-bottom: 20px;
+`
+
+const TabsBar = styled.div`
+   display: flex;
+   align-self: stretch;
+   margin-top: 10px;
+`
+
+const TabButtton = styled.div<any>`
+   flex: 1;
+   justify-content: center;
+   align-itmes: center;
+   text-align: center;
+   padding: 10px;
+   border-radius: 5px 5px 0 0;
+   cursor: pointer;
+   background-color: ${props => props.active ? 'white' : 'inherit'};
+   color: ${props => props.active ? 'black' : 'white'};
+   font-weight: bold;
+`
+
+
+
+
+const Tab = ({ children }: any) => {
+   const { isActive, onClick } = useTabState();
+   return (
+      <TabButtton active={isActive} onClick={onClick}>
+         {children}
+      </TabButtton>
+   )
+};
+
+const Panel = ({ children }: any) => {
+   const isActive = usePanelState();
+
+   return isActive ? children : null;
+};
 
 const Feedback = () => {
+   const tabState = useState(1)
    const [loading, setLoading] = useState(false)
    const [submitted, setSubmitted] = useState(false)
    const [isOpen, setIsOpen] = useState(false)
    const [message, setMessage] = useState('')
    const [image, setImage] = useState(null)
-   const [screenshot, setScreenshot] = useState(true)
+   const [screenshot, setScreenshot] = useState(false)
+   const [widgetConfig, setWidgetConfig] = useState({} as any)
 
 
    const [feedback] = useMutation(FEEDBACK_MUTATION);
+   const { data } = useQuery(WIDGET)
+
+
+   useEffect(() => {
+      if (!(_ as any).cookie.get('mf_uuid')) {
+         (_ as any).cookie.set('mf_uuid', (_ as any).UUID(), 365, true, true)
+      }
+   }, [])
+
+   useEffect(() => {
+      if (data) {
+         setWidgetConfig(data.widget)
+      }
+   }, [data])
 
    const sendFeedback = () => {
       setLoading(true)
@@ -161,66 +237,101 @@ const Feedback = () => {
 
    let content = null
 
-   if (loading) {
-      content = (<div style={{ height: 300 }}>loading</div>)
-   } else {
-      if (submitted) {
-         content = <div style={{ height: 300 }}>Thank you!</div>
-      } else {
-         content = (
-            <div style={{ padding: 15, display: 'flex', flexDirection: 'column' }}>
-               {
-                  image &&
-                  <div style={{ border: '1px dashed', textAlign: 'center', backgroundColor: '#00000010' }} >
-                     <img style={{ maxHeight: 150, maxWidth: '100%',width: 'auto' }} src={image || ''} />
-                  </div>
-               }
-               <Label>
-                  <input
-                     style={{ marginRight: 5 }}
-                     name="screenshot"
-                     type="checkbox"
-                     checked={screenshot}
-                     onChange={() => {
-                        setScreenshot(!screenshot)
-                        if (!screenshot) {
-                           captureScreen()
-                        } else {
-                           setImage(null)
-                        }
-                     }}
+   // if (loading) {
+   //    content = (<div style={{ height: 300 }}>loading</div>)
+   // } else {
+   //    if (submitted) {
+   //       content = <div style={{ height: 300 }}>Thank you!</div>
+   //    } else {
+   //       content = (
+
+   //       )
+   //    }
+   // }
+
+
+   content = (
+      <div>
+         <Tabs state={tabState}>
+            <Header>
+               <p css={`margin: 0; font-weight: bold`}>Help us imporove {widgetConfig.appName}</p>
+               {/* <p css={`margin: 0`}>Need help? Contact us.</p> */}
+
+               <TabsBar>
+                  <Tab>Feedback</Tab>
+                  <Tab>
+                     Features
+                  </Tab>
+               </TabsBar>
+            </Header>
+
+            <Panel>
+               <Body>
+                  {
+                     image &&
+                     <div style={{ border: '1px dashed', textAlign: 'center', backgroundColor: '#00000010' }} >
+                        <img style={{ maxHeight: 150, maxWidth: '100%', width: 'auto' }} src={image || ''} />
+                     </div>
+                  }
+                  <Label>
+                     <input
+                        style={{ marginRight: 5 }}
+                        name="screenshot"
+                        type="checkbox"
+                        checked={screenshot}
+                        onChange={() => {
+                           setScreenshot(!screenshot)
+                           if (!screenshot) {
+                              captureScreen()
+                           } else {
+                              setImage(null)
+                           }
+                        }}
+                     />
+                        Include screenshot
+                     </Label>
+                  <Textarea
+                     autoFocus
+                     placeholder="Share your ideas, tell us what you like and what you don't. We want to hear it, the good and the bad."
+                     // autofocusHtml="true"
+                     value={message}
+                     onChange={e => setMessage(e.target.value)}
+                     rows={5}
                   />
-                     Include screenshot
-                  </Label>
-               <Textarea
-                  autoFocus
-                  // autofocusHtml="true"
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  rows={10}
-               />
-               <div css={`display: flex; justify-content: flex-end`}>
-                  <SendButton disabled={!message} onClick={sendFeedback}>
-                     Send
-               </SendButton>
-               </div>
-            </div>
-         )
-      }
-   }
+
+               </Body>
+               <Footer>
+                  <Button disabled={!message} onClick={sendFeedback}>
+                     Next
+                  </Button>
+               </Footer>
+            </Panel>
+
+            <Panel>
+               <Body>
+                  <Features />
+               </Body>
+            </Panel>
+
+         </Tabs>
+      </div>
+   )
 
    return (
       <Floating>
          <Popover
-            isOpen={isOpen}
-            content={content}
+            isOpen={true}
+            content={<ContentContainer>
+               {content}
+            </ContentContainer>
+            }
          >
-            <Button onClick={() => {
+            <FAB onClick={() => {
                setIsOpen(!isOpen)
                captureScreen()
             }}>
-               <SVG />
-            </Button>
+               <Svg />
+            </FAB>
          </Popover >
       </Floating >
    )

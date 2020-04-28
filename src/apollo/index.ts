@@ -5,6 +5,7 @@ import { onError } from 'apollo-link-error';
 import { ApolloLink } from 'apollo-link';
 
 import moufetteConfig from '../config'
+import { _ } from '../utils'
 
 
 const errorLink = onError(
@@ -43,7 +44,8 @@ const errorLink = onError(
 const auth = new ApolloLink((operation, forward) => {
    operation.setContext({
       headers: {
-         token: moufetteConfig.token
+         token: moufetteConfig.token,
+         mf_uuid: (_ as any).cookie.get('mf_uuid')
       }
    });
    return forward(operation);
