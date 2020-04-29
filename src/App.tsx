@@ -320,7 +320,7 @@ const Feedback = () => {
    return (
       <Floating>
          <Popover
-            isOpen={true}
+            isOpen={isOpen}
             content={<ContentContainer>
                {content}
             </ContentContainer>
@@ -328,7 +328,8 @@ const Feedback = () => {
          >
             <FAB onClick={() => {
                setIsOpen(!isOpen)
-               captureScreen()
+               if (screenshot)
+                  captureScreen()
             }}>
                <Svg />
             </FAB>
