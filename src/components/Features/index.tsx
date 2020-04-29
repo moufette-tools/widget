@@ -26,7 +26,7 @@ width: 0;
 height: 0;
 border-left: 5px solid transparent;
 border-right: 5px solid transparent;
-border-bottom: 10px solid ${props => props.marked ? '#1890ff' : 'gray'};
+border-bottom: 10px solid ${props => props.marked ? props.theme.colors.primary : 'gray'};
 `
 
 const ArrowDown = styled.div<any>`
@@ -35,7 +35,7 @@ width: 0;
 height: 0;
 border-left: 5px solid transparent;
 border-right: 5px solid transparent;
-border-top: 10px solid ${props => props.marked ? '#1890ff' : 'gray'};
+border-top: 10px solid ${props => props.marked ? props.theme.colors.primary : 'gray'};
 `
 
 const Title = styled.div`

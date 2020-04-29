@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import styled from 'styled-components/macro'
+import styled, { ThemeProvider } from 'styled-components/macro'
 import { useMutation, useQuery } from '@apollo/client';
 import html2canvas from 'html2canvas';
 import { Tabs, useTabState, usePanelState } from "@bumaga/tabs";
@@ -7,6 +7,7 @@ import { Tabs, useTabState, usePanelState } from "@bumaga/tabs";
 import { CSSProp } from 'styled-components';
 
 import Popover from './components/Popover'
+import Tooltip from './components/Tooltip'
 import Svg from './components/Svg'
 import Features from './components/Features'
 
@@ -50,13 +51,13 @@ const FAB = styled.button`
    width: 48px;
    height: 48px;
    border-radius: 50%;
-   background-color: #1890ff;
-   border-color: #1890ff;
+   background-color: ${props => props.theme.colors.primary};
+   border-color: ${props => props.theme.colors.primary};
    outline: none;
    cursor: pointer;
 
    :active {
-      background-color: #096dd9;
+      background-color: ${props => props.theme.colors.primary};
    }
 `;
 
@@ -89,8 +90,8 @@ const Button = styled.button`
    border-color: #d9d9d9;
 
    color: #fff;
-   background-color: #1890ff;
-   border-color: #1890ff;
+   background-color: ${props => props.theme.colors.primary};
+   border-color: ${props => props.theme.colors.primary};
    text-shadow: 0 -1px 0 rgba(0,0,0,.12);
    -webkit-box-shadow: 0 2px 0 rgba(0,0,0,.045);
    box-shadow: 0 2px 0 rgba(0,0,0,.045);
@@ -117,7 +118,7 @@ const Header = styled.div`
    display: flex;
    justify-content: center;
    align-items: center;
-   background-color: #1890ff;
+   background-color: ${props => props.theme.colors.primary};
    color: white;
    padding: 20px;
    padding-bottom: 0px;
@@ -147,7 +148,7 @@ const Logo = styled.div`
 const TabsBar = styled.div`
    display: flex;
    align-self: stretch;
-   margin-top: 10px;
+   margin-top: 20px;
 `
 
 const TabButtton = styled.div<any>`
@@ -161,6 +162,25 @@ const TabButtton = styled.div<any>`
    background-color: ${props => props.active ? 'white' : 'inherit'};
    color: ${props => props.active ? 'black' : 'white'};
    font-weight: bold;
+`
+
+const Viewer = styled.div<any>`
+   display: flex;
+   position: fixed;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   background-color: #00000099;
+`
+
+const Close = styled.div`
+   position: absolute;
+   right: 20px;
+   top: 20px;
+   font-size: 40px;
+   cursor: pointer;
+   color: white;
 `
 
 
@@ -185,11 +205,12 @@ const Feedback = () => {
    const tabState = useState(1)
    const [loading, setLoading] = useState(false)
    const [submitted, setSubmitted] = useState(false)
+   const [viewer, setViewer] = useState(false)
    const [isOpen, setIsOpen] = useState(false)
    const [message, setMessage] = useState('')
    const [image, setImage] = useState(null)
    const [screenshot, setScreenshot] = useState(false)
-   const [widgetConfig, setWidgetConfig] = useState({} as any)
+   const [widgetConfig, setWidgetConfig] = useState({ theme: { colors: { primary: '#1890ff' } } } as any)
 
 
    const [feedback] = useMutation(FEEDBACK_MUTATION);
@@ -234,6 +255,10 @@ const Feedback = () => {
       });
    }
 
+   const toggleViewer = () => {
+      setViewer(!viewer)
+   }
+
 
    let content = null
 
@@ -269,7 +294,7 @@ const Feedback = () => {
                <Body>
                   {
                      image &&
-                     <div style={{ border: '1px dashed', textAlign: 'center', backgroundColor: '#00000010' }} >
+                     <div onClick={toggleViewer} style={{ border: '1px dashed', textAlign: 'center', backgroundColor: '#00000010' }} >
                         <img style={{ maxHeight: 150, maxWidth: '100%', width: 'auto' }} src={image || ''} />
                      </div>
                   }
@@ -314,27 +339,38 @@ const Feedback = () => {
             </Panel>
 
          </Tabs>
+         {
+            viewer &&
+            <Viewer>
+               <Close onClick={toggleViewer}>X</Close>
+               <img style={{ maxHeight: '80%', maxWidth: '80%', width: 'auto', alignSelf: 'center', margin: 'auto' }} src={image || ''} />
+            </Viewer>
+         }
       </div>
    )
 
    return (
-      <Floating>
-         <Popover
-            isOpen={isOpen}
-            content={<ContentContainer>
-               {content}
-            </ContentContainer>
-            }
-         >
-            <FAB onClick={() => {
-               setIsOpen(!isOpen)
-               if (screenshot)
-                  captureScreen()
-            }}>
-               <Svg />
-            </FAB>
-         </Popover >
-      </Floating >
+      <ThemeProvider theme={widgetConfig.theme}>
+         <Floating>
+            <Popover
+               isOpen={isOpen}
+               content={<ContentContainer>
+                  {content}
+               </ContentContainer>
+               }
+            >
+               <Tooltip messages={['Psst', 'Hey, psst', 'We need your help!']} delay={1000} interval={3000}>
+                  <FAB onClick={() => {
+                     setIsOpen(!isOpen)
+                     if (screenshot)
+                        captureScreen()
+                  }}>
+                     <Svg />
+                  </FAB>
+               </Tooltip>
+            </Popover >
+         </Floating >
+      </ThemeProvider>
    )
 }
 
