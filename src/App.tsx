@@ -351,7 +351,7 @@ const Feedback = () => {
       <ThemeProvider theme={widgetConfig.theme}>
          <Floating>
             <Popover
-               isOpen={true}
+               isOpen={isOpen}
                content={<ContentContainer>
                   <Tabs state={tabState}>
                      <Header>
