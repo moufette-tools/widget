@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react'
 import styled, { ThemeProvider } from 'styled-components/macro'
 import { useMutation, useQuery } from '@apollo/client';
 import html2canvas from 'html2canvas';
-import { Tabs, useTabState, usePanelState } from "@bumaga/tabs";
 
 import { CSSProp } from 'styled-components';
 
+import { Tabs, useTabState, Panel } from "./components/Tabs";
 import Popover from './components/Popover'
 import Tooltip from './components/Tooltip'
 import Svg from './components/Svg'
@@ -209,14 +209,8 @@ const Tab = ({ children }: any) => {
    )
 };
 
-const Panel = ({ children }: any) => {
-   const isActive = usePanelState();
-
-   return isActive ? children : null;
-};
-
 const Feedback = () => {
-   const tabState = useState(1)
+   const tabState = useState(0)
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('waiting')
    const [viewer, setViewer] = useState(false)
@@ -357,7 +351,7 @@ const Feedback = () => {
       <ThemeProvider theme={widgetConfig.theme}>
          <Floating>
             <Popover
-               isOpen={isOpen}
+               isOpen={true}
                content={<ContentContainer>
                   <Tabs state={tabState}>
                      <Header>
@@ -365,14 +359,16 @@ const Feedback = () => {
                         {/* <p css={`margin: 0`}>Need help? Contact us.</p> */}
 
                         <TabsBar>
-                           <Tab>Feedback</Tab>
-                           <Tab>
+                           <Tab key="feedback">
+                              Feedback
+                           </Tab>
+                           <Tab key="features">
                               Features
                            </Tab>
                         </TabsBar>
                      </Header>
 
-                     <Panel>
+                     <Panel key="feedback">
                         <Body>
                            {content}
                         </Body>
@@ -381,7 +377,7 @@ const Feedback = () => {
                         </Footer>
                      </Panel>
 
-                     <Panel>
+                     <Panel key="features">
                         <Body>
                            <Features />
                         </Body>

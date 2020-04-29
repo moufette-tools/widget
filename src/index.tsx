@@ -6,11 +6,12 @@ import * as serviceWorker from './serviceWorker';
 import client from './apollo';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <ApolloProvider client={client}>
-      <App />
-    </ApolloProvider>
-  </React.StrictMode>,
+  // <React.StrictMode> // Bug with tabs
+  <ApolloProvider client={client}>
+    <App />
+  </ApolloProvider>
+  // </React.StrictMode>
+  ,
   document.getElementById('moufette-widget')
 );
 
