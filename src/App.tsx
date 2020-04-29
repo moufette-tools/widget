@@ -47,6 +47,17 @@ const Textarea = styled.textarea`
    line-height: 24px;
 `;
 
+const Input = styled.input`
+   display: block;
+   border-radius: 2px;
+   outline: none;
+   font-size: 16px;
+   padding: 5px;
+   line-height: 24px;
+   border: none;
+   border-bottom: 1px solid gray;
+`;
+
 const FAB = styled.button`
    width: 48px;
    height: 48px;
@@ -111,6 +122,8 @@ const Button = styled.button`
 const ContentContainer = styled.div`
    min-height: 300px;
    max-height: 100vh;
+   display: flex;
+   flex-direction: column;
 `
 
 const Header = styled.div`
@@ -125,6 +138,7 @@ const Header = styled.div`
 `
 
 const Body = styled.div`
+   flex: 1;
    padding: 20px; padding-bottom: 0; display: flex; flex-direction: column
 `
 
@@ -204,10 +218,11 @@ const Panel = ({ children }: any) => {
 const Feedback = () => {
    const tabState = useState(1)
    const [loading, setLoading] = useState(false)
-   const [submitted, setSubmitted] = useState(false)
+   const [status, setStatus] = useState('waiting')
    const [viewer, setViewer] = useState(false)
    const [isOpen, setIsOpen] = useState(false)
    const [message, setMessage] = useState('')
+   const [email, setEmail] = useState('')
    const [image, setImage] = useState(null)
    const [screenshot, setScreenshot] = useState(false)
    const [widgetConfig, setWidgetConfig] = useState({ theme: { colors: { primary: '#1890ff' } } } as any)
@@ -234,12 +249,13 @@ const Feedback = () => {
       feedback({
          variables: {
             message,
-            image
+            image,
+            email
          },
       }).then(({ data }) => {
          // message.success('Thank you for your feedback. You Rock!', 5);
          setLoading(false)
-         setSubmitted(true)
+         setStatus('submitted')
          setImage(null)
          setMessage('')
       }).catch(e => {
@@ -261,37 +277,45 @@ const Feedback = () => {
 
 
    let content = null
+   let footer = null
 
-   // if (loading) {
-   //    content = (<div style={{ height: 300 }}>loading</div>)
-   // } else {
-   //    if (submitted) {
-   //       content = <div style={{ height: 300 }}>Thank you!</div>
-   //    } else {
-   //       content = (
-
-   //       )
-   //    }
-   // }
-
-
-   content = (
-      <div>
-         <Tabs state={tabState}>
-            <Header>
-               <p css={`margin: 0; font-weight: bold`}>Help us imporove {widgetConfig.appName}</p>
-               {/* <p css={`margin: 0`}>Need help? Contact us.</p> */}
-
-               <TabsBar>
-                  <Tab>Feedback</Tab>
-                  <Tab>
-                     Features
-                  </Tab>
-               </TabsBar>
-            </Header>
-
-            <Panel>
-               <Body>
+   if (loading) {
+      content = (<div style={{ height: 300 }}>loading</div>)
+   } else {
+      switch (status) {
+         case 'email':
+            footer = (
+               <Button onClick={sendFeedback}>
+                  Send
+               </Button>
+            )
+            content = (
+               <>
+                  <Input
+                     autoFocus
+                     placeholder="Email address (optional)"
+                     // autofocusHtml="true"
+                     value={email}
+                     onChange={e => setEmail(e.target.value)}
+                  />
+                  <p css={`color: gray; font-size: 12px`}>We will use your email only to follow up on your feedback. No spam!</p>
+               </>
+            )
+            break
+         case 'submitted':
+            content = <div css={`justify-content: center; align-items: center; display: flex; flex: 1; flex-direction: column;`}>
+               <svg fill="red" xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 24 24"><path d="M12 9.229c.234-1.12 1.547-6.229 5.382-6.229 2.22 0 4.618 1.551 4.618 5.003 0 3.907-3.627 8.47-10 12.629-6.373-4.159-10-8.722-10-12.629 0-3.484 2.369-5.005 4.577-5.005 3.923 0 5.145 5.126 5.423 6.231zm-12-1.226c0 4.068 3.06 9.481 12 14.997 8.94-5.516 12-10.929 12-14.997 0-7.962-9.648-9.028-12-3.737-2.338-5.262-12-4.27-12 3.737z" /></svg>
+               <p>Thank you!</p>
+            </div>
+            break
+         case 'waiting':
+            footer = (
+               <Button disabled={!message} onClick={() => setStatus('email')}>
+                  Next
+               </Button>
+            )
+            content = (
+               <>
                   {
                      image &&
                      <div onClick={toggleViewer} style={{ border: '1px dashed', textAlign: 'center', backgroundColor: '#00000010' }} >
@@ -313,8 +337,8 @@ const Feedback = () => {
                            }
                         }}
                      />
-                        Include screenshot
-                     </Label>
+                           Include screenshot
+                  </Label>
                   <Textarea
                      autoFocus
                      placeholder="Share your ideas, tell us what you like and what you don't. We want to hear it, the good and the bad."
@@ -323,31 +347,11 @@ const Feedback = () => {
                      onChange={e => setMessage(e.target.value)}
                      rows={5}
                   />
-
-               </Body>
-               <Footer>
-                  <Button disabled={!message} onClick={sendFeedback}>
-                     Next
-                  </Button>
-               </Footer>
-            </Panel>
-
-            <Panel>
-               <Body>
-                  <Features />
-               </Body>
-            </Panel>
-
-         </Tabs>
-         {
-            viewer &&
-            <Viewer>
-               <Close onClick={toggleViewer}>X</Close>
-               <img style={{ maxHeight: '80%', maxWidth: '80%', width: 'auto', alignSelf: 'center', margin: 'auto' }} src={image || ''} />
-            </Viewer>
-         }
-      </div>
-   )
+               </>
+            )
+            break
+      }
+   }
 
    return (
       <ThemeProvider theme={widgetConfig.theme}>
@@ -355,13 +359,49 @@ const Feedback = () => {
             <Popover
                isOpen={isOpen}
                content={<ContentContainer>
-                  {content}
+                  <Tabs state={tabState}>
+                     <Header>
+                        <p css={`margin: 0; font-weight: bold`}>Help us imporove {widgetConfig.appName}</p>
+                        {/* <p css={`margin: 0`}>Need help? Contact us.</p> */}
+
+                        <TabsBar>
+                           <Tab>Feedback</Tab>
+                           <Tab>
+                              Features
+                           </Tab>
+                        </TabsBar>
+                     </Header>
+
+                     <Panel>
+                        <Body>
+                           {content}
+                        </Body>
+                        <Footer>
+                           {footer}
+                        </Footer>
+                     </Panel>
+
+                     <Panel>
+                        <Body>
+                           <Features />
+                        </Body>
+                     </Panel>
+
+                  </Tabs>
+                  {
+                     viewer &&
+                     <Viewer>
+                        <Close onClick={toggleViewer}>X</Close>
+                        <img style={{ maxHeight: '80%', maxWidth: '80%', width: 'auto', alignSelf: 'center', margin: 'auto' }} src={image || ''} />
+                     </Viewer>
+                  }
                </ContentContainer>
                }
             >
                <Tooltip messages={['Psst', 'Hey, psst', 'We need your help!']} delay={1000} interval={3000}>
                   <FAB onClick={() => {
                      setIsOpen(!isOpen)
+                     setStatus('waiting')
                      if (screenshot)
                         captureScreen()
                   }}>
