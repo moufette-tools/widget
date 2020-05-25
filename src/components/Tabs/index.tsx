@@ -12,7 +12,6 @@ type ResultBox<T> = { v: T }
 function useConstant<T>(fn: () => T): T {
    const ref = React.useRef<ResultBox<T>>()
 
-   console.log({ ref })
    if (!ref.current) {
       ref.current = { v: fn() }
    }

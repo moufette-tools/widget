@@ -28,11 +28,11 @@ const Label = styled.label`
    margin: 10px 0;
 `
 
-const Floating = styled.div`
-  position: fixed;
+const Floating = styled.div<any>`
+  position: ${props => props?.location?.position || 'absolute'};
   right: 10px;
-  margin: 10px;
-  bottom: 10px;
+  margin: ${props => props.mode?.style === 'tab' ? '0 10px 0 0' : '10px'};
+  bottom: ${props => props.mode?.style === 'tab' ? '0' : '10px'};
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 `;
 
@@ -67,6 +67,18 @@ const FAB = styled.button`
    outline: none;
    cursor: pointer;
 
+   :active {
+      background-color: ${props => props.theme.colors.primary};
+   }
+`;
+
+const TabAB = styled.button`
+   border-radius: 5px 5px 0 0;
+   color: white;
+   background-color: ${props => props.theme.colors.primary};
+   border-color: ${props => props.theme.colors.primary};
+   outline: none;
+   cursor: pointer;
    :active {
       background-color: ${props => props.theme.colors.primary};
    }
@@ -209,21 +221,21 @@ const Tab = ({ children }: any) => {
    )
 };
 
-const Feedback = () => {
+const Feedback = ({ config }: any) => {
    const tabState = useState(0)
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('waiting')
    const [viewer, setViewer] = useState(false)
-   const [isOpen, setIsOpen] = useState(false)
+   const [isOpen, setIsOpen] = useState(!!config || false)
    const [message, setMessage] = useState('')
    const [email, setEmail] = useState('')
    const [image, setImage] = useState(null)
    const [screenshot, setScreenshot] = useState(false)
-   const [widgetConfig, setWidgetConfig] = useState({ theme: { colors: { primary: '#1890ff' } } } as any)
+   const [widgetConfig, setWidgetConfig] = useState(config || { theme: { colors: { primary: '#1890ff' } } } as any)
 
 
    const [feedback] = useMutation(FEEDBACK_MUTATION);
-   const { data } = useQuery(WIDGET)
+   const { data } = useQuery(WIDGET, { skip: !!config })
 
 
    useEffect(() => {
@@ -237,6 +249,12 @@ const Feedback = () => {
          setWidgetConfig(data.widget)
       }
    }, [data])
+
+   useEffect(() => {
+      if (config) {
+         setWidgetConfig(config)
+      }
+   }, [config])
 
    const sendFeedback = () => {
       setLoading(true)
@@ -347,42 +365,77 @@ const Feedback = () => {
       }
    }
 
+   const renderActionButton = () => {
+      if (widgetConfig.mode?.style === 'tab') {
+         return (
+            <TabAB onClick={() => {
+               setIsOpen(!isOpen)
+               setStatus('waiting')
+               if (screenshot)
+                  captureScreen()
+            }}>
+               {widgetConfig.mode?.text}
+            </TabAB>
+         )
+      }
+      return (
+         <FAB onClick={() => {
+            setIsOpen(!isOpen)
+            setStatus('waiting')
+            if (screenshot)
+               captureScreen()
+         }}>
+            <Svg />
+         </FAB>
+      )
+   }
+
    return (
       <ThemeProvider theme={widgetConfig.theme}>
-         <Floating>
+         <Floating location={widgetConfig.location} mode={widgetConfig.mode}>
             <Popover
                isOpen={isOpen}
                content={<ContentContainer>
                   <Tabs state={tabState}>
                      <Header>
-                        <p css={`margin: 0; font-weight: bold`}>Help us imporove {widgetConfig.appName}</p>
+                        <p css={`margin: 0; font-weight: bold`}>{widgetConfig.header}</p>
                         {/* <p css={`margin: 0`}>Need help? Contact us.</p> */}
 
                         <TabsBar>
-                           <Tab key="feedback">
-                              Feedback
+                           {
+                              widgetConfig?.tabs?.feedback &&
+                              <Tab key="feedback">
+                                 Feedback
                            </Tab>
-                           <Tab key="features">
-                              Features
-                           </Tab>
+                           }
+                           {
+                              widgetConfig?.tabs?.features &&
+                              <Tab key="features">
+                                 Features
+                              </Tab>
+                           }
                         </TabsBar>
                      </Header>
 
-                     <Panel key="feedback">
-                        <Body>
-                           {content}
-                        </Body>
-                        <Footer>
-                           {footer}
-                        </Footer>
-                     </Panel>
-
-                     <Panel key="features">
-                        <Body>
-                           <Features />
-                        </Body>
-                     </Panel>
-
+                     {
+                        widgetConfig?.tabs?.feedback &&
+                        <Panel key="feedback">
+                           <Body>
+                              {content}
+                           </Body>
+                           <Footer>
+                              {footer}
+                           </Footer>
+                        </Panel>
+                     }
+                     {
+                        widgetConfig?.tabs?.features &&
+                        <Panel key="features">
+                           <Body>
+                              <Features />
+                           </Body>
+                        </Panel>
+                     }
                   </Tabs>
                   {
                      viewer &&
@@ -394,19 +447,12 @@ const Feedback = () => {
                </ContentContainer>
                }
             >
-               <Tooltip messages={['Psst', 'Hey, psst', 'We need your help!']} delay={1000} interval={3000}>
-                  <FAB onClick={() => {
-                     setIsOpen(!isOpen)
-                     setStatus('waiting')
-                     if (screenshot)
-                        captureScreen()
-                  }}>
-                     <Svg />
-                  </FAB>
-               </Tooltip>
+               {/* <Tooltip messages={['Psst', 'Hey, psst', 'We need your help!']} delay={1000} interval={3000}> */}
+               {renderActionButton()}
+               {/* </Tooltip> */}
             </Popover >
          </Floating >
-      </ThemeProvider>
+      </ThemeProvider >
    )
 }
 

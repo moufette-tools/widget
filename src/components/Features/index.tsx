@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components/macro'
 import { useMutation, useQuery } from '@apollo/client';
 import html2canvas from 'html2canvas';
-import { Tabs, useTabState, Panel } from "@bumaga/tabs";
 
 import { FEATURES } from '../../apollo/queries';
 import { VOTE } from '../../apollo/mutations';

@@ -1,7 +1,7 @@
 {
   "name": "moufette-widget",
   "version": "0.1.1",
-  "private": true,
+  "private": false,
   "dependencies": {
     "@apollo/client": "^3.0.0-beta.43",
     "@testing-library/jest-dom": "^4.2.4",
