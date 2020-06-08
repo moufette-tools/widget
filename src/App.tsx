@@ -7,7 +7,7 @@ import { CSSProp } from 'styled-components';
 
 import { Tabs, useTabState, Panel } from "./components/Tabs";
 import Popover from './components/Popover'
-import Tooltip from './components/Tooltip'
+// import Tooltip from './components/Tooltip'
 import Svg from './components/Svg'
 import Features from './components/Features'
 
@@ -15,6 +15,8 @@ import { FEEDBACK_MUTATION } from './apollo/mutations';
 import { WIDGET, FEATURES } from './apollo/queries';
 
 import { _ } from './utils'
+
+declare module './utils'
 
 declare module 'react' {
    interface Attributes {
