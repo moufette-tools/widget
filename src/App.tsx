@@ -14,6 +14,7 @@ import Features from './components/Features'
 import { FEEDBACK_MUTATION } from './apollo/mutations';
 import { WIDGET, FEATURES } from './apollo/queries';
 
+// @ts-ignore
 import { _ } from './utils'
 
 declare module 'react' {
