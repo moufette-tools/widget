@@ -16,8 +16,6 @@ import { WIDGET, FEATURES } from './apollo/queries';
 
 import { _ } from './utils'
 
-declare module './utils'
-
 declare module 'react' {
    interface Attributes {
       css?: CSSProp;
