@@ -30,7 +30,7 @@ const Label = styled.label`
 `
 
 const Floating = styled.div<any>`
-  position: ${props => props?.location?.position || 'absolute'};
+  position: ${props => props?.location?.position || 'fixed'};
   right: 10px;
   margin: ${props => props.mode?.style === 'tab' ? '0 10px 0 0' : '10px'};
   bottom: ${props => props.mode?.style === 'tab' ? '0' : '10px'};
@@ -390,6 +390,8 @@ const Feedback = ({ config }: any) => {
          </FAB>
       )
    }
+
+   console.log({ widgetConfig })
 
    return (
       <ThemeProvider theme={widgetConfig.theme}>
